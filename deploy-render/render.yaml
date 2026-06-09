@@ -2,6 +2,7 @@ services:
   - type: web
     name: xhs-assistant-api
     runtime: node
+    rootDir: deploy-render
     buildCommand: npm install
     startCommand: node server.js
     envVars:

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书智能经营助手 - Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;background:#0f172a;color:#e2e8f0;display:flex;min-height:100vh}
+.sidebar{width:220px;background:#1e1b4b;padding:20px 0;border-right:1px solid rgba(255,255,255,0.1);position:fixed;height:100vh;overflow-y:auto}
+.sidebar h2{padding:0 20px;font-size:14px;color:#a78bfa;margin-bottom:20px}
+.sidebar a{display:flex;align-items:center;gap:10px;padding:12px 20px;color:#94a3b8;text-decoration:none;font-size:14px;transition:all .2s}
+.sidebar a:hover,.sidebar a.active{background:rgba(139,92,246,0.15);color:#fff;border-right:3px solid #7c3aed}
+.main{margin-left:220px;flex:1;padding:24px;min-height:100vh}
+.banner{background:linear-gradient(90deg,#7c3aed,#2563eb);padding:10px 20px;border-radius:8px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.banner a{color:#fff;text-decoration:underline}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:20px;text-align:center}
+.stat-card .num{font-size:2rem;font-weight:700;color:#a78bfa}
+.stat-card .label{font-size:12px;color:#94a3b8;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06)}
+th{color:#94a3b8;font-weight:500}
+.badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(34,197,94,0.2);color:#4ade80}
+.badge-yellow{background:rgba(234,179,8,0.2);color:#facc15}
+.badge-blue{background:rgba(59,130,246,0.2);color:#60a5fa}
+.badge-red{background:rgba(239,68,68,0.2);color:#f87171}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-primary{background:#7c3aed;color:#fff}.btn-primary:hover{background:#6d28d9}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#e2e8f0}.btn-outline:hover{background:rgba(255,255,255,0.05)}
+input,select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;width:100%}
+input:focus,select:focus{outline:none;border-color:#7c3aed}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;color:#94a3b8;margin-bottom:4px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.show{display:flex}
+.modal{background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:16px}
+.loading{text-align:center;padding:40px;color:#94a3b8}
+.progress-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin:12px 0}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,#7c3aed,#2563eb);transition:width .3s}
+.note-preview{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px;margin:12px 0;white-space:pre-wrap;font-size:13px;line-height:1.8;max-height:300px;overflow-y:auto}
+.hidden{display:none}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>📱 XHS 助手</h2>
+  <a href="#" class="active" onclick="switchTab('dashboard')">📊 数据看板</a>
+  <a href="#" onclick="switchTab('products')">📦 商品管理</a>
+  <a href="#" onclick="switchTab('content')">✨ 内容中心</a>
+  <a href="#" onclick="switchTab('orders')">🔄 订单管理</a>
+  <a href="/" style="margin-top:40px;opacity:0.6">← 返回首页</a>
+</nav>
+
+<div class="main">
+  <div class="banner">
+    <span>🚀 Demo 演示模式 — 数据来自真实 API（首次加载可能需等待30秒冷启动）</span>
+    <a href="/">返回产品介绍</a>
+  </div>
+
+  <!-- 数据看板 -->
+  <div id="tab-dashboard">
+    <h2 style="margin-bottom:16px">数据看板</h2>
+    <div class="stats" id="dashboard-stats"><div class="loading">加载中...</div></div>
+  </div>
+
+  <!-- 商品管理 -->
+  <div id="tab-products" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2>商品管理</h2>
+      <button class="btn btn-primary" onclick="showSpreadModal()">+ 一键铺货</button>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>商品</th><th>成本</th><th>售价</th><th>利润率</th><th>状态</th></tr></thead>
+      <tbody id="product-list"><tr><td colspan="5" class="loading">加载中...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- 内容中心 -->
+  <div id="tab-content" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2>内容中心</h2>
+      <button class="btn btn-primary" onclick="showNoteModal()">✨ AI生成笔记</button>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>标题</th><th>风格</th><th>人群</th><th>状态</th></tr></thead>
+      <tbody id="note-list"><tr><td colspan="4" class="loading">加载中...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- 订单管理 -->
+  <div id="tab-orders" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2>订单管理</h2>
+      <div><button class="btn btn-outline" onclick="syncOrders()">🔄 同步订单</button></div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>订单号</th><th>商品</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="order-list"><tr><td colspan="5" class="loading">加载中...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- 铺货弹窗 -->
+<div class="modal-overlay" id="spread-modal">
+  <div class="modal">
+    <h3>一键铺货</h3>
+    <div id="spread-step1">
+      <div class="form-group"><label>搜索1688商品</label><input id="spread-keyword" placeholder="输入关键词，如：连衣裙" onkeydown="if(event.key==='Enter')searchProducts()"></div>
+      <button class="btn btn-primary" onclick="searchProducts()" style="width:100%">搜索</button>
+      <div id="spread-results" style="margin-top:12px"></div>
+    </div>
+    <div id="spread-step2" class="hidden">
+      <p id="spread-selected-info" style="margin-bottom:12px"></p>
+      <div class="form-group"><label>定价倍率</label><input id="spread-multiplier" type="number" value="2.5" min="1.5" max="5" step="0.1"></div>
+      <button class="btn btn-primary" onclick="doSpread()" style="width:100%">开始铺货</button>
+    </div>
+    <div id="spread-step3" class="hidden">
+      <p>铺货进行中...</p>
+      <div class="progress-bar"><div class="fill" id="spread-progress" style="width:0%"></div></div>
+      <p id="spread-status-text" style="font-size:12px;color:#94a3b8"></p>
+    </div>
+    <div id="spread-step4" class="hidden" style="text-align:center;padding:20px">
+      <p style="font-size:24px">✅</p><p style="font-weight:600;margin:8px 0">铺货成功！</p>
+      <button class="btn btn-primary" onclick="closeSpreadModal();switchTab('products')">查看商品列表</button>
+    </div>
+    <button class="btn btn-outline" onclick="closeSpreadModal()" style="width:100%;margin-top:12px">关闭</button>
+  </div>
+</div>
+
+<!-- 笔记生成弹窗 -->
+<div class="modal-overlay" id="note-modal">
+  <div class="modal">
+    <h3>AI 生成笔记</h3>
+    <div id="note-form">
+      <div class="form-group"><label>商品名称</label><input id="note-title" placeholder="如：碎花连衣裙"></div>
+      <div class="form-group"><label>文案风格</label><select id="note-style"><option value="grass_planting">种草推荐</option><option value="review">真实测评</option><option value="tutorial">教程攻略</option></select></div>
+      <div class="form-group"><label>目标人群</label><select id="note-audience"><option value="student">学生党</option><option value="office">上班族</option><option value="mom">宝妈</option><option value="general">通用</option></select></div>
+      <button class="btn btn-primary" onclick="generateNote()" style="width:100%">生成笔记</button>
+    </div>
+    <div id="note-loading" class="hidden loading">AI 正在创作中...</div>
+    <div id="note-result" class="hidden">
+      <h4 id="note-result-title" style="color:#a78bfa"></h4>
+      <div class="note-preview" id="note-result-content"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-primary" onclick="adoptNote()" style="flex:1">采纳发布</button>
+        <button class="btn btn-outline" onclick="document.getElementById('note-result').classList.add('hidden');document.getElementById('note-form').classList.remove('hidden')" style="flex:1">重新生成</button>
+      </div>
+    </div>
+    <button class="btn btn-outline" onclick="closeNoteModal()" style="width:100%;margin-top:12px">关闭</button>
+  </div>
+</div>
+
+<script>
+const API = '';  // 同源，不需要跨域
+let currentNote = null;
+let selectedProduct = null;
+
+// Tab切换
+function switchTab(tab) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'products') loadProducts();
+  if (tab === 'content') loadNotes();
+  if (tab === 'orders') loadOrders();
+}
+
+// 数据看板
+async function loadDashboard() {
+  try {
+    const res = await fetch(API + '/api/v1/dashboard/overview');
+    const d = await res.json();
+    if (d.code === 0) {
+      const s = d.data;
+      document.getElementById('dashboard-stats').innerHTML = `
+        <div class="stat-card"><div class="num">¥${s.gmv}</div><div class="label">GMV</div></div>
+        <div class="stat-card"><div class="num">${s.orderCount}</div><div class="label">订单数</div></div>
+        <div class="stat-card"><div class="num">¥${s.profitTotal}</div><div class="label">总利润</div></div>
+        <div class="stat-card"><div class="num">${s.noteCount}</div><div class="label">笔记数</div></div>
+        <div class="stat-card"><div class="num">${s.totalViews}</div><div class="label">总浏览</div></div>
+        <div class="stat-card"><div class="num">${s.conversionRate}%</div><div class="label">转化率</div></div>`;
+    }
+  } catch(e) { document.getElementById('dashboard-stats').innerHTML = '<div class="loading">API 冷启动中，请等待30秒后刷新...</div>'; }
+}
+
+// 商品列表
+async function loadProducts() {
+  try {
+    const res = await fetch(API + '/api/v1/products');
+    const d = await res.json();
+    const list = d.data?.products || [];
+    if (list.length === 0) { document.getElementById('product-list').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">暂无商品，点击"一键铺货"开始</td></tr>'; return; }
+    document.getElementById('product-list').innerHTML = list.map(p => `<tr><td>${p.title?.substring(0,20)}...</td><td>¥${p.costPrice}</td><td style="color:#f87171;font-weight:600">¥${p.sellPrice}</td><td><span class="badge badge-green">${p.profitMargin}%</span></td><td><span class="badge badge-blue">${p.status}</span></td></tr>`).join('');
+  } catch(e) { document.getElementById('product-list').innerHTML = '<tr><td colspan="5" class="loading">加载失败</td></tr>'; }
+}
+
+// 笔记列表
+async function loadNotes() {
+  try {
+    const res = await fetch(API + '/api/v1/notes');
+    const d = await res.json();
+    const list = d.data?.notes || [];
+    if (list.length === 0) { document.getElementById('note-list').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8">暂无笔记，点击"AI生成笔记"开始</td></tr>'; return; }
+    const styleMap = {grass_planting:'种草',review:'测评',tutorial:'教程'};
+    const audMap = {student:'学生党',office:'上班族',mom:'宝妈',general:'通用'};
+    document.getElementById('note-list').innerHTML = list.map(n => `<tr><td>${(n.title||'').substring(0,25)}...</td><td>${styleMap[n.style]||n.style}</td><td>${audMap[n.targetAudience]||n.targetAudience}</td><td><span class="badge ${n.status==='READY'?'badge-green':'badge-yellow'}">${n.status||'DRAFT'}</span></td></tr>`).join('');
+  } catch(e) {}
+}
+
+// 订单列表
+async function loadOrders() {
+  try {
+    const res = await fetch(API + '/api/v1/orders');
+    const d = await res.json();
+    const list = d.data?.orders || [];
+    const statusBadge = s => s==='SHIPPED'?'badge-green':s==='PENDING'?'badge-yellow':s==='SOURCING'?'badge-blue':'badge-green';
+    document.getElementById('order-list').innerHTML = list.map(o => `<tr><td>${o.id}</td><td>${o.product}</td><td>¥${o.amount}</td><td><span class="badge ${statusBadge(o.status)}">${o.localStatus}</span></td><td>${o.status==='PENDING'?`<button class="btn btn-sm btn-primary" onclick="shipOrder('${o.id}')">发货</button>`:o.trackingNumber||'-'}</td></tr>`).join('');
+  } catch(e) {}
+}
+
+async function syncOrders() {
+  await fetch(API + '/api/v1/orders/sync', {method:'POST'});
+  loadOrders();
+  alert('同步完成！');
+}
+
+async function shipOrder(id) {
+  const res = await fetch(API + '/api/v1/orders/' + id + '/ship', {method:'POST'});
+  const d = await res.json();
+  if (d.code === 0) alert('发货成功！物流单号：' + d.data.trackingNumber);
+  else alert(d.message);
+  loadOrders();
+}
+
+// 铺货
+function showSpreadModal() { document.getElementById('spread-modal').classList.add('show'); resetSpread(); }
+function closeSpreadModal() { document.getElementById('spread-modal').classList.remove('show'); }
+function resetSpread() { ['spread-step1','spread-step2','spread-step3','spread-step4'].forEach((id,i) => document.getElementById(id).classList.toggle('hidden',i!==0)); document.getElementById('spread-results').innerHTML=''; }
+
+async function searchProducts() {
+  const kw = document.getElementById('spread-keyword').value;
+  const res = await fetch(API + '/api/v1/source-products?keyword=' + encodeURIComponent(kw));
+  const d = await res.json();
+  const products = d.data?.products || [];
+  document.getElementById('spread-results').innerHTML = products.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(255,255,255,0.05)"><div><b>${p.title.substring(0,20)}</b><br><span style="color:#f87171">¥${p.price}</span> · ${p.supplier}</div><button class="btn btn-sm btn-primary" onclick="selectProduct('${p.id}','${p.title}',${p.price})">选择</button></div>`).join('');
+}
+
+function selectProduct(id, title, price) {
+  selectedProduct = {id, title, price};
+  document.getElementById('spread-step1').classList.add('hidden');
+  document.getElementById('spread-step2').classList.remove('hidden');
+  const m = document.getElementById('spread-multiplier').value;
+  document.getElementById('spread-selected-info').innerHTML = `<b>${title}</b><br>成本¥${price} → 预计售价¥${(price*m).toFixed(1)}`;
+}
+
+async function doSpread() {
+  document.getElementById('spread-step2').classList.add('hidden');
+  document.getElementById('spread-step3').classList.remove('hidden');
+  const m = document.getElementById('spread-multiplier').value;
+  const res = await fetch(API + '/api/v1/products/spread', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sourceProductId:selectedProduct.id,sourcePlatform:'1688',priceRule:{type:'MULTIPLIER',value:parseFloat(m)}})});
+  const d = await res.json();
+  const taskId = d.data.taskId;
+  const poll = setInterval(async()=>{
+    const r = await fetch(API + '/api/v1/products/spread-task/' + taskId);
+    const t = await r.json();
+    document.getElementById('spread-progress').style.width = t.data.progress + '%';
+    document.getElementById('spread-status-text').textContent = t.data.status;
+    if(t.data.status==='COMPLETED'){clearInterval(poll);document.getElementById('spread-step3').classList.add('hidden');document.getElementById('spread-step4').classList.remove('hidden');}
+  }, 800);
+}
+
+// 笔记生成
+function showNoteModal(){document.getElementById('note-modal').classList.add('show');document.getElementById('note-form').classList.remove('hidden');document.getElementById('note-loading').classList.add('hidden');document.getElementById('note-result').classList.add('hidden');}
+function closeNoteModal(){document.getElementById('note-modal').classList.remove('show');}
+
+async function generateNote() {
+  document.getElementById('note-form').classList.add('hidden');
+  document.getElementById('note-loading').classList.remove('hidden');
+  const body = {productTitle:document.getElementById('note-title').value,style:document.getElementById('note-style').value,targetAudience:document.getElementById('note-audience').value,antiAiLevel:'MEDIUM'};
+  const res = await fetch(API + '/api/v1/notes/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await res.json();
+  currentNote = d.data;
+  document.getElementById('note-loading').classList.add('hidden');
+  document.getElementById('note-result').classList.remove('hidden');
+  document.getElementById('note-result-title').textContent = d.data.title;
+  document.getElementById('note-result-content').textContent = d.data.content;
+}
+
+async function adoptNote() {
+  await fetch(API + '/api/v1/notes/adopt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:currentNote.title,content:currentNote.content,topics:currentNote.topics,style:currentNote.style,targetAudience:currentNote.targetAudience,antiAiLevel:'MEDIUM'})});
+  alert('笔记已采纳！可在内容列表查看');
+  closeNoteModal();
+  loadNotes();
+}
+
+// 初始化
+loadDashboard();
+</script>
+</body>
+</html>

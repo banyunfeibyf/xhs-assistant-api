@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小红书智能经营助手 - 产品预览</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; color: #fff; overflow-x: hidden; }
+.hero { min-height: 100vh; background: linear-gradient(135deg, #1a0533 0%, #0d1b3e 40%, #0a2463 70%, #1e3a5f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%); animation: float 20s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-20px, -20px) rotate(2deg); } }
+.hero-content { position: relative; z-index: 1; max-width: 800px; }
+.badge { display: inline-block; padding: 6px 16px; background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 20px; font-size: 13px; margin-bottom: 24px; backdrop-filter: blur(10px); }
+h1 { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #93c5fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+.subtitle { font-size: clamp(1rem, 2.5vw, 1.4rem); color: rgba(255,255,255,0.7); margin-bottom: 40px; line-height: 1.6; }
+.stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 50px; }
+.stat-item { text-align: center; }
+.stat-num { font-size: 2.2rem; font-weight: 700; color: #a78bfa; }
+.stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+.features { padding: 80px 20px; background: linear-gradient(180deg, #0a2463 0%, #0f172a 100%); }
+.features-inner { max-width: 1100px; margin: 0 auto; }
+.section-title { text-align: center; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; margin-bottom: 12px; }
+.section-desc { text-align: center; color: rgba(255,255,255,0.6); margin-bottom: 50px; font-size: 1.05rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px 24px; backdrop-filter: blur(10px); transition: all 0.3s ease; }
+.card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, 0.4); background: rgba(139, 92, 246, 0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.card-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+.card-icon.purple { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+.card-icon.blue { background: linear-gradient(135deg, #2563eb, #60a5fa); }
+.card-icon.green { background: linear-gradient(135deg, #059669, #34d399); }
+.card-icon.orange { background: linear-gradient(135deg, #d97706, #fbbf24); }
+.card h3 { font-size: 1.2rem; margin-bottom: 10px; font-weight: 600; }
+.card p { color: rgba(255,255,255,0.6); font-size: 0.9rem; line-height: 1.6; }
+.card .tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+.card .tag { padding: 3px 10px; background: rgba(139, 92, 246, 0.2); border-radius: 12px; font-size: 0.75rem; color: #c4b5fd; }
+.flow { padding: 80px 20px; background: #0f172a; }
+.flow-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+.flow-steps { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+.flow-step { padding: 14px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; font-size: 0.9rem; white-space: nowrap; }
+.flow-step.active { background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(37, 99, 235, 0.3)); border-color: #7c3aed; }
+.flow-arrow { color: rgba(255,255,255,0.3); font-size: 1.2rem; }
+.tech { padding: 80px 20px; background: linear-gradient(180deg, #0f172a 0%, #1a0533 100%); }
+.tech-inner { max-width: 800px; margin: 0 auto; text-align: center; }
+.tech-stack { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin-top: 30px; }
+.tech-item { padding: 12px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; font-size: 0.9rem; }
+.cta { padding: 80px 20px; background: linear-gradient(135deg, #1a0533 0%, #0d1b3e 100%); text-align: center; }
+.cta-inner { max-width: 600px; margin: 0 auto; }
+.cta h2 { font-size: 2rem; margin-bottom: 16px; }
+.cta p { color: rgba(255,255,255,0.6); margin-bottom: 32px; }
+.btn { display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #7c3aed, #2563eb); border-radius: 12px; font-size: 1.1rem; font-weight: 600; color: #fff; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6); }
+.footer { padding: 30px 20px; background: #0a0a0a; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+@media (max-width: 600px) { .stats { gap: 20px; } .flow-steps { flex-direction: column; } .flow-arrow { transform: rotate(90deg); } }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="badge">🚀 MVP Demo 已完成</div>
+    <h1>小红书智能经营助手</h1>
+    <p class="subtitle">AI 驱动的一站式电商经营解决方案<br>从选品铺货到笔记发布，从订单履约到数据分析，全链路自动化</p>
+    <div class="stats">
+      <div class="stat-item"><div class="stat-num">4</div><div class="stat-label">核心模块</div></div>
+      <div class="stat-item"><div class="stat-num">19</div><div class="stat-label">API 接口</div></div>
+      <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">全链路测试通过</div></div>
+      <div class="stat-item"><div class="stat-num">3s</div><div class="stat-label">铺货完成时间</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-inner">
+    <h2 class="section-title">核心功能</h2>
+    <p class="section-desc">覆盖小红书电商经营全链路，每个环节都有 AI 加持</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon purple">📦</div>
+        <h3>一键铺货</h3>
+        <p>从1688/PDD搜索货源，一键铺货到小红书店铺。AI自动优化标题和描述，智能定价策略确保利润空间。</p>
+        <div class="tags"><span class="tag">1688对接</span><span class="tag">AI优化标题</span><span class="tag">智能定价</span></div>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">✨</div>
+        <h3>AI笔记生成</h3>
+        <p>多风格（种草/测评/教程）× 多人群（学生党/上班族/宝妈）智能组合，防AI检测处理，多版本测款对比。</p>
+        <div class="tags"><span class="tag">多版本测款</span><span class="tag">防AI检测</span><span class="tag">人群定向</span></div>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🔄</div>
+        <h3>订单自动化</h3>
+        <p>小红书订单自动同步，一键向1688采购，物流单号自动回传。从下单到发货全自动履约。</p>
+        <div class="tags"><span class="tag">订单同步</span><span class="tag">自动采购</span><span class="tag">物流回传</span></div>
+      </div>
+      <div class="card">
+        <div class="card-icon orange">📊</div>
+        <h3>数据看板</h3>
+        <p>GMV、利润、转化率实时追踪。多版本笔记效果对比，数据驱动选品和内容优化决策。</p>
+        <div class="tags"><span class="tag">实时GMV</span><span class="tag">利润分析</span><span class="tag">测款对比</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="flow">
+  <div class="flow-inner">
+    <h2 class="section-title">全链路闭环</h2>
+    <p class="section-desc">从选品到变现，每一步都自动化衔接</p>
+    <div class="flow-steps">
+      <div class="flow-step active">🔍 搜索选品</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">📦 一键铺货</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">✨ AI生成笔记</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">📱 发布到小红书</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">💰 订单回流</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">🚚 自动发货</div>
+    </div>
+  </div>
+</section>
+
+<section class="tech">
+  <div class="tech-inner">
+    <h2 class="section-title">技术架构</h2>
+    <p class="section-desc">现代化技术栈，企业级可扩展架构</p>
+    <div class="tech-stack">
+      <div class="tech-item">⚛️ React 18</div>
+      <div class="tech-item">🟢 Node.js</div>
+      <div class="tech-item">🤖 通义千问 AI</div>
+      <div class="tech-item">🎨 Ant Design</div>
+      <div class="tech-item">🔌 小红书 API</div>
+      <div class="tech-item">🏭 1688 API</div>
+      <div class="tech-item">🐳 Docker</div>
+      <div class="tech-item">📊 实时数据</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-inner">
+    <h2>准备好开始了吗？</h2>
+    <p>目前 MVP Demo 已完成全链路验证，正在对接真实平台 API。<br>欢迎体验和交流合作。</p>
+    <a href="/demo.html" class="btn">立即体验 Demo →</a>
+    <p style="margin-top: 20px; color: rgba(255,255,255,0.4); font-size: 0.85rem;">点击"立即体验"进入管理后台 Demo</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>小红书智能经营助手 · 2025 · AI-Powered E-commerce Solution</p>
+</footer>
+
+</body>
+</html>

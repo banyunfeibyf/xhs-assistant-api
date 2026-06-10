@@ -162,12 +162,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#7c3aed}
     <h3>AI 生成笔记 — 多版本测款</h3>
     <div id="note-form">
       <div class="form-group">
-        <label>关联已铺货商品（可选）</label>
+        <label>快捷选择已铺货商品（可选，不选则自由创作）</label>
         <select id="note-product-select" onchange="onProductSelect()">
           <option value="">-- 手动输入商品名 --</option>
         </select>
       </div>
-      <div class="form-group"><label>商品名称</label><input id="note-title" placeholder="如：碎花连衣裙"></div>
+      <div class="form-group"><label>创作主题（可输入商品名、话题、任意内容）</label><input id="note-title" placeholder="如：碎花连衣裙、夏日防晒攻略、租房避坑指南..."></div>
       <div class="form-group">
         <label>目标人群（可多选，生成多个版本）</label>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px" id="audience-checkboxes">
@@ -523,6 +523,7 @@ function renderVersions() {
         <button class="btn btn-sm btn-outline" onclick="regenerateVersion(${i},'style')">🔄 换风格</button>
         <button class="btn btn-sm btn-outline" onclick="regenerateVersion(${i},'audience')">👥 换人群</button>
         <button class="btn btn-sm btn-outline" onclick="regenerateVersion(${i},'full')">🔁 重新生成</button>
+        <button class="btn btn-sm btn-green" onclick="showChatInput(${i})">💬 对话修改</button>
       </div>
     </div>
   `).join('');
@@ -599,6 +600,82 @@ async function regenerateVersion(idx, mode) {
   } catch(e) { alert('请求失败: ' + e.message); }
 }
 
+// ============ 多轮对话修改 ============
+let chatSessionMap = {}; // idx -> sessionId
+
+function showChatInput(idx) {
+  const card = document.querySelectorAll(".version-card")[idx];
+  if (!card) return;
+  // 如果已有聊天区域则聚焦
+  const existing = card.querySelector(".chat-area");
+  if (existing) { existing.querySelector("input").focus(); return; }
+  
+  const chatHtml = `<div class="chat-area" style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px">
+    <div class="chat-history" id="chat-history-${idx}" style="max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="chat-input-${idx}" placeholder="输入修改意见，如：语气再活泼一些、加入价格对比..." style="flex:1" onkeydown="if(event.key===\Enter)sendChatFeedback(${idx})">
+      <button class="btn btn-sm btn-primary" onclick="sendChatFeedback(${idx})">发送</button>
+    </div>
+    <p class="text-sm" style="margin-top:4px;opacity:0.6">💡 可多轮修改，满意后点"采纳发布"</p>
+  </div>`;
+  card.insertAdjacentHTML("beforeend", chatHtml);
+  card.querySelector(".chat-area input").focus();
+}
+
+async function sendChatFeedback(idx) {
+  const input = document.getElementById("chat-input-" + idx);
+  const feedback = input.value.trim();
+  if (!feedback) return;
+  
+  const v = multiVersions[idx];
+  const sessionId = v.sessionId || chatSessionMap[idx];
+  if (!sessionId) { alert("该版本无会话ID，请重新生成"); return; }
+  
+  // 显示用户消息
+  const history = document.getElementById("chat-history-" + idx);
+  history.innerHTML += `<div style="margin-bottom:6px"><span style="color:#a78bfa;font-size:11px">你：</span><span style="font-size:12px">${feedback}</span></div>`;
+  input.value = "";
+  input.disabled = true;
+  history.innerHTML += `<div id="chat-loading-${idx}" style="margin-bottom:6px;font-size:12px;color:#94a3b8">🤖 AI修改中...</div>`;
+  history.scrollTop = history.scrollHeight;
+  
+  try {
+    const res = await fetch(API + "/api/v1/notes/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ sessionId, feedback })
+    });
+    const d = await res.json();
+    const loading = document.getElementById("chat-loading-" + idx);
+    if (loading) loading.remove();
+    
+    if (d.code === 0 && d.data) {
+      // 更新版本内容
+      multiVersions[idx].title = d.data.title || multiVersions[idx].title;
+      multiVersions[idx].content = d.data.content || multiVersions[idx].content;
+      multiVersions[idx].topics = d.data.topics || multiVersions[idx].topics;
+      
+      history.innerHTML += `<div style="margin-bottom:6px"><span style="color:#4ade80;font-size:11px">AI：</span><span style="font-size:12px">${d.data.changeNote || "已修改"}</span></div>`;
+      
+      // 更新卡片内容显示
+      const card = document.querySelectorAll(".version-card")[idx];
+      const contentDiv = card.querySelector(".content");
+      if (contentDiv) contentDiv.textContent = d.data.content || "";
+      const h4span = card.querySelector("h4 span:first-child");
+      if (h4span) h4span.textContent = "📝 版本" + (idx+1) + ": " + (d.data.title||"").substring(0,25);
+      
+      history.innerHTML += `<div style="margin-bottom:6px;padding:8px;background:rgba(74,222,128,0.1);border-radius:6px;font-size:11px;color:#4ade80">✅ 第${d.data.round||"?"}轮修改完成，可继续反馈或采纳</div>`;
+    } else {
+      history.innerHTML += `<div style="color:#f87171;font-size:12px">❌ ${d.message || "修改失败"}</div>`;
+    }
+  } catch(e) {
+    const loading = document.getElementById("chat-loading-" + idx);
+    if (loading) loading.remove();
+    history.innerHTML += `<div style="color:#f87171;font-size:12px">❌ 请求失败: ${e.message}</div>`;
+  }
+  input.disabled = false;
+  input.focus();
+  history.scrollTop = history.scrollHeight;
+}
 // ============ 初始化 ============
 loadDashboard();
 </script>
